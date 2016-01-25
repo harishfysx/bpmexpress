@@ -3,7 +3,7 @@ var express = require('express');
 var path = require('path');
 
 var routes = require('./routes'); // This loads index route
-var about = require('./routes/about'); //This loads about route
+var home = require('./routes/home'); //This loads about route
 var login= require('./routes/login'); //This loads login route
 
 //passport
@@ -53,22 +53,22 @@ passport.use(new LocalStrategy(function(username, password, done) {
 
 app.post('/login',function(req,res,next){
 	//console.log(req.body);
-	app.locals.userName=req.body.username;
-	app.locals.pass=req.body.password;
+	//app.locals.userName=req.body.username;
+	//app.locals.pass=req.body.password;
 	next();
 	},
 passport.authenticate('local', {
     failureRedirect: '/'
 }), function(req, res) {
     
-    res.redirect('/about');
+    res.redirect('/home');
 });
 
 // home page 
 app.get('/', require('connect-ensure-login').ensureLoggedIn('/login'), routes.index);
 
 //about page
-app.get('/about', require('connect-ensure-login').ensureLoggedIn('/login'),about.aboutPage);
+app.get('/home', require('connect-ensure-login').ensureLoggedIn('/login'),home.homeGet);
 
 //login page
 app.get('/login', login.loginpage);
