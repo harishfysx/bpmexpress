@@ -5,6 +5,7 @@ var path = require('path');
 var routes = require('./routes'); // This loads index route
 var home = require('./routes/home'); //This loads about route
 var login= require('./routes/login'); //This loads login route
+var xhr = require('node-xhr');
 
 //passport
 var flash    = require('connect-flash');
@@ -39,16 +40,39 @@ passport.serializeUser(function(user, done) {
 
 //app.use(auth);
 
-passport.use(new LocalStrategy(function(username, password, done) {
-	
-	if(username===password){
-		var user=username;
-		done(null, user) //suceesfull login
-	}
-	else{
-		done(null, null) //falied login
-	}
-}));
+	passport.use(new LocalStrategy(function(username, password, done) {
+	    var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
+	    console.log(auth);
+	    
+	        xhr.get({
+	            url: 'http://192.168.2.140:9080/rest/bpm/wle/v1/user/current',
+	            headers: {
+	                'Content-Type': 'application/json',
+	                'Authorization': auth
+	            },
+	        }, function(err, res) {
+	            if (err) {
+	                console.log(err.message);
+	                return;
+	            }
+	            
+	            if(JSON.stringify(res.status.code)==401){
+	            	
+	            	console.log(res);
+	            	done(null, null)
+	     
+	            }else{
+	            	var user=res.body.data;
+	            	console.log(res);
+	                 done(null, user);
+	                 
+	               
+	            }
+	            
+	        });
+	   
+	    
+	}));
 
 
 app.post('/login',function(req,res,next){
