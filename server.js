@@ -40,39 +40,43 @@ passport.serializeUser(function(user, done) {
 
 //app.use(auth);
 
-	passport.use(new LocalStrategy(function(username, password, done) {
-	    var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
-	    console.log(auth);
-	    
-	        xhr.get({
-	            url: 'http://192.168.2.140:9080/rest/bpm/wle/v1/user/current',
-	            headers: {
-	                'Content-Type': 'application/json',
-	                'Authorization': auth
-	            },
-	        }, function(err, res) {
-	            if (err) {
-	                console.log(err.message);
-	                return;
-	            }
-	            
-	            if(JSON.stringify(res.status.code)==401){
-	            	
-	            	console.log(res);
-	            	done(null, null)
-	     
-	            }else{
-	            	var user=res.body.data;
-	            	console.log(res);
-	                 done(null, user);
-	                 
-	               
-	            }
-	            
-	        });
-	   
-	    
-	}));
+	passport.use(new LocalStrategy({
+		
+        passReqToCallback : true
+    },
+    function(req, username, password, done) { 
+	var auth = "Basic " + new Buffer(username + ":" + password).toString("base64");
+        // check in mongo if a user with username exists or not
+        xhr.get({
+            url: 'http://192.168.2.140:9080/rest/bpm/wle/v1/user/current',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': auth
+            },
+        }, 
+        function(err, res) {
+            if (err) {
+                //console.log(err.message);
+                return;
+            }
+            
+            if(JSON.stringify(res.status.code)==401){
+            	
+            	//console.log(res);
+            	return done(null, null,req.flash('message', 'Invalid Username Or Password'))
+     
+            }else{
+            	var user=res.body.data;
+            	//console.log(res);
+                return done(null, user);
+                 
+               
+            }
+            
+        });
+        
+
+    }));
 
 
 app.post('/login',function(req,res,next){
